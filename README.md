@@ -1,93 +1,39 @@
-# ai_1612_jdh_jsj
+# 🐕 견종 추천 RAG 챗봇 프로젝트
 
+## 1. 프로젝트 배경 및 기획 의도
+* **배경**: 2023년 G마켓 통계에 따르면 반려동물용 유모차 판매 비율(57%)이 유아용 유모차(43%)를 처음으로 넘어섰습니다[cite: 1]. 미국 월스트리트저널(WSJ)은 이를 통해 한국 사회가 반려동물을 자녀처럼 키우는 문화적 변화를 겪고 있으며 관련 수요가 급증하고 있다고 분석했습니다 (출처: The Wall Street Journal, 2023)[cite: 1].
+* **목적**: 예비 반려인이 자신의 성향, 주거 환경, 동거인 유무 등의 조건을 입력하면 가장 알맞은 견종을 추천해 주는 맞춤형 RAG(Retrieval-Augmented Generation) 챗봇을 개발하고자 하였습니다[cite: 1].
 
+---
 
-## Getting started
+## 2. 데이터 수집 및 전처리 전략
+* **정량적 데이터 활용**: Kaggle에서 제공하는 견종별 세부 정보 데이터셋(`dog_breeds.csv`)을 활용하여 체중, 크기, 털 빠짐, 활동량 등을 수치화된 기준으로 확보했습니다[cite: 1].
+* **정성적 데이터 활용**: 반려견 훈련사의 유튜브 영상 스크립트를 추출하여, 한국의 주거 환경(아파트 등)에 맞는 현실적인 제약 사항과 정성적인 팁을 보완했습니다[cite: 1].
+* **전처리 (Preprocessing)**[cite: 1]:
+  * CSV 파일의 표 데이터를 AI가 문맥으로 이해할 수 있도록 `"견종 이름: OO, 기대 수명: OO년..."` 형태의 자연어 템플릿으로 변환했습니다[cite: 1].
+  * 텍스트 스크립트는 타임스탬프 등의 노이즈를 제거하고, 견종을 기준으로 문단을 나누는 **'의미 기반 분할(Semantic Chunking)'**을 적용해 정보의 단절을 방지했습니다[cite: 1].
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+---
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## 3. 주요 트러블슈팅 및 고도화 과정
 
-## Add your files
+### [프로토타입] 데이터 결측 및 검색 누락 문제 해결
+* **현상**: 정량적 데이터(CSV)와 정성적 데이터(TXT) 중 한 곳에만 정보가 있는 경우, 챗봇이 간헐적으로 "해당 견종에 대한 정보가 없다"고 답변하는 문제 발생[cite: 1].
+* **원인 및 조치**[cite: 1]:
+  * **청크 절단 문제**: 기계적인 글자 수(500자) 기준으로 텍스트를 자르면서 특정 견종(예: 핏불)의 정보가 유실되는 현상을 파악하고, 견종 단위로 청크를 분할하여 해결했습니다[cite: 1].
+  * **검색 임계값 오류**: 벡터 검색 시 ChromaDB의 거리 계산 방식 차이로 인해 유사도 점수가 마이너스로 측정되어 문서가 필터링되는 현상을 발견했습니다. `score_threshold` 값을 대폭 낮추거나 제거하여 검색 필터를 완화함으로써 데이터 누락을 방지했습니다[cite: 1].
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+### [A 시리즈] 기계적 답변(수치화) 문제 개선
+* **현상**: 검색 성능은 향상되었으나, 챗봇이 "에너지 3점, 짖음 1점"과 같이 데이터를 기계적으로 나열하여 부자연스러운 답변을 생성했습니다[cite: 1].
+* **원인 및 조치**: 프롬프트 엔지니어링을 통해 제약 조건(Guardrails)을 추가했습니다[cite: 1]. 수치를 그대로 노출하지 않고, "적당한 활동량을 가져서 관리가 수월하고, 헛짖음이 적은 편"과 같이 상황에 맞는 자연스러운 형용사로 번역하도록 지시어를 수정하여 응답 품질을 높였습니다[cite: 1].
 
-```
-cd existing_repo
-git remote add origin https://lab.ssafy.com/whehdgnl1998/ai_1612_jdh_jsj.git
-git branch -M master
-git push -uf origin master
-```
+### [B 시리즈] 톤앤매너 개선 및 로컬 이미지 서빙 연동
+* **현상**: 사용자 경험(UX) 향상 및 1순위 추천 견종의 사진 제공을 목표로 설정했습니다[cite: 1].
+* **원인 및 조치**[cite: 1]:
+  * **감성적 프롬프트 적용**: "따뜻하고 다정한 반려동물 전문가"라는 페르소나를 부여하고, 대화체(~해요, ~습니다)를 사용하도록 시스템 프롬프트를 전면 개편했습니다[cite: 1].
+  * **할루시네이션 통제 및 로컬 이미지 서빙**: 외부 AI 이미지 생성 링크 사용 시 잘못된 강아지 사진이 출력될 위험을 방지하기 위해, FastAPI의 `StaticFiles`를 마운트(`app.mount`)했습니다[cite: 1]. 디렉토리 경로(`../clients/sample_data/images`)를 정확히 매핑하여 직접 검증한 로컬 사진 파일만 안전하게 제공하도록 신뢰성을 확보했습니다[cite: 1].
 
-## Integrate with your tools
+---
 
-* [Set up project integrations](https://lab.ssafy.com/whehdgnl1998/ai_1612_jdh_jsj/-/settings/integrations)
-
-## Collaborate with your team
-
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+## 4. 결론 및 시사점
+본 프로젝트는 생성형 AI API를 단순히 호출하는 것을 넘어, RAG 시스템의 핵심인 **'검색 품질(Retrieval)'**과 **'프롬프트 엔지니어링'**의 중요성을 입증한 사례입니다[cite: 1]. 데이터의 특성에 맞춘 전처리(Semantic Chunking), 하이퍼파라미터 세밀 조정, 프롬프트를 통한 환각 통제 및 톤앤매너 개선을 통해 기계적인 답변을 실서비스 수준의 맞춤형 상담원 수준으로 끌어올리는 데 성공했습니다[cite: 1].
