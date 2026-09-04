@@ -1,0 +1,66 @@
+# --- Python & FastAPI (Servers) ---
+# 파이썬 가상환경 폴더
+.venv/
+.venv
+servers/.venv/
+servers/venv/
+servers/env/
+servers/ENV/
+
+# 파이썬 캐시 및 빌드 파일
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# FastAPI / Uvicorn 로그 및 로컬 데이터
+*.log
+*.sqlite3
+*.db
+
+
+# --- Client ---
+clinets/node_modules/
+clinets/dist/
+clinets/build/
+clinets/.pnp
+.pnp.js
+
+
+# --- Environment Variables & Secrets ---
+# API 키, DB 비밀번호 등이 담긴 환경 변수 파일 (서버, 클라이언트 모두 차단)
+.env
+.env.local
+.env.*.local
+servers/.env
+clinets/.env
+
+
+# --- OS Generated Files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.vscode/
+.idea/
